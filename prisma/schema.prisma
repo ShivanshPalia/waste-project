@@ -1,0 +1,107 @@
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// User model
+model User {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  email           String            @unique
+  name            String
+  createdAt       DateTime          @default(now()) @map("created_at")
+
+  // Relations
+  reports         Report[]          // Relation to Report
+  rewards         Reward[]          // Relation to Reward
+  collectedWastes CollectedWaste[]  // Relation to CollectedWaste
+  notifications   Notification[]    // Relation to Notification
+  transactions    Transaction[]     // Relation to Transaction
+}
+
+// Report model
+model Report {
+ id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId             String            // Foreign key to User
+  location           String
+  wasteType          String            @map("waste_type")
+  amount             String
+  status             String            @default("pending")
+  createdAt          DateTime          @default(now()) @map("created_at")
+  imageUrl           String?
+  verificationResult Json              @default("{}")
+  // Relations
+  user               User              @relation(fields: [userId], references: [id]) // Foreign key relation to User
+  collectedWastes    CollectedWaste[]  // Relation to CollectedWaste
+}
+
+// Reward model
+model Reward {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId             String            // Foreign key to User
+  points             Int               @default(0)
+  level              Int               @default(1)
+  createdAt          DateTime          @default(now()) @map("created_at")
+  updatedAt          DateTime          @default(now()) @map("updated_at")
+  isAvailable        Boolean           @default(true)
+  description        String?
+  name               String
+  collectionInfo     String
+
+  // Relations
+  user               User              @relation(fields: [userId], references: [id]) // Foreign key relation to User
+}
+
+// CollectedWaste model
+model CollectedWaste {
+  id                 String            @id @default(auto()) @map("_id") @db.ObjectId
+  reportId           String            // Foreign key to Report
+  collectorId        String            // Foreign key to User
+  collectionDate     DateTime
+  status             String            @default("collected")
+
+  // Relations
+  report             Report            @relation(fields: [reportId], references: [id]) // Foreign key relation to Report
+  collector          User              @relation(fields: [collectorId], references: [id]) // Foreign key relation to User
+}
+
+// Notification model
+model Notification {
+  id                 String            @id @default(auto()) @map("_id") @db.ObjectId
+  userId             String            // Foreign key to User
+  message            String
+  type               String
+  isRead             Boolean           @default(false)
+  createdAt          DateTime          @default(now())
+
+  // Relations
+  user               User              @relation(fields: [userId], references: [id]) // Foreign key relation to User
+}
+
+// Transaction model
+model Transaction {
+  id                 String            @id @default(auto()) @map("_id") @db.ObjectId
+  userId             String            // Foreign key to User
+  type               String
+  amount             Int
+  description        String
+  date               DateTime          @default(now())
+
+  // Relations
+  user               User              @relation(fields: [userId], references: [id]) // Foreign key relation to User
+}
+
+
+model UserSettings {
+  id             String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId         String  @unique
+  name           String
+  email          String  @unique
+  phone          String
+  address        String
+  notifications  Boolean
+  
+}
